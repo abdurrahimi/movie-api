@@ -13,4 +13,5 @@ type Dependency struct {
 func (d *Dependency) HttpServer(group *echo.Group) {
 	group.GET("", d.GetMovie)
 	group.GET("/:id", d.GetMovieByID)
+	group.POST("", d.CreateMovie)
 }
