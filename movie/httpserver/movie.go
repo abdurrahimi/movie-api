@@ -59,7 +59,6 @@ func (d *Dependency) GetMovie(c echo.Context) error {
 
 func (d *Dependency) GetMovieByID(c echo.Context) error {
 	id := c.Param("id")
-
 	if id == "" {
 		return c.JSON(http.StatusBadRequest, echo.Map{
 			"message": "movie id is required",
@@ -126,5 +125,74 @@ func (d *Dependency) CreateMovie(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(http.StatusNoContent, nil)
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (d *Dependency) UpdateMovie(c echo.Context) error {
+	movieId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"message": "invalid movie id",
+			"error":   err.Error(),
+		})
+	}
+
+	if movieId == 0 {
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"message": "movie id is required",
+		})
+	}
+
+	var req request
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"message": "invalid movie data",
+			"error":   err.Error(),
+		})
+	}
+
+	movie := &movie.Movies{
+		Title:       req.Title,
+		Description: req.Description,
+		Rating:      req.Rating,
+		Image:       req.Image,
+		CreatedAt:   req.CreatedAt.Time,
+		UpdatedAt:   req.CreatedAt.Time,
+	}
+
+	err = d.Movie.UpdateMovie(c.Request().Context(), movieId, movie)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "Internal server error",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (d *Dependency) DeleteMovie(c echo.Context) error {
+	movieId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"message": "invalid movie id",
+			"error":   err.Error(),
+		})
+	}
+
+	if movieId == 0 {
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"message": "movie id is required",
+		})
+	}
+
+	err = d.Movie.DeleteMovie(c.Request().Context(), movieId)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": "Internal server error",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
